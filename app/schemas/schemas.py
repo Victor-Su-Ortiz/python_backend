@@ -29,3 +29,10 @@ class TaskResponse(TaskBase):
     created_at: datetime
     owner_id: int
     completed: bool = False
+
+    class config:
+        """
+        the configuration
+        """
+
+        orm_mode = True
