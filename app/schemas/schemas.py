@@ -28,7 +28,7 @@ class User(UserBase):
     is_active: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserInDB(User):
@@ -60,7 +60,7 @@ class Task(TaskBase):
     owner_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TaskInDB(Task):
@@ -72,4 +72,4 @@ class UserWithTasks(User):
     tasks: List[Task] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
