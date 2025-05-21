@@ -34,7 +34,7 @@ def get_tasks(
     completed: Optional[bool] = None,
     priority: Optional[int] = Query(None, gt=0, lt=6),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     """
     Retreive the tasks for the current user
@@ -76,15 +76,28 @@ def get_task(
         return HTTPException(status_code=404, detail="Task not found")
     return task
 
+
 @router.put("/{task_id}", response_model=schemas.Task)
 def update_task(
     task_id: int,
+    update_data: schemas.TaskUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    # current_user: models.User = Depends(get_current_user),
 ):
-    task_db = db.query(models.Task).filter(
-        models.Task.id == task_id,
-        models.Task.owner_id == current_user.id
-    ).first()
+    """
+    Update a task using a new task (put operation)
+    """
+    task_db = (
+        db.query(models.Task)
+        .filter(models.Task.id == task_id, models.Task.owner_id == 1)
+        .first()
+    )
 
     if task_db is None:
+        return HTTPException(status_code=404, detail="task not found")
+    task_update = update_data.model_dump(exclude_unset=True)
+    for key, value in task_update:
+        setattr(task_db, key, value)
+    db.commit()
+    db.refresh(task_db)
+    return task_db
