@@ -5,6 +5,7 @@ from typing import Optional, List
 from app.models import models
 from app.schemas import schemas
 from app.models import database
+from app.utils.deps import get_current_user
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -12,5 +13,6 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 def create_task(
     task: schemas.TaskCreate,
     db: Session = Depends(database.get_db),
-    
-)
+    current_user: models.User = Depends(get_current_user)
+):
+    db_task = models.Task()
