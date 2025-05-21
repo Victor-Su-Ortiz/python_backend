@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 
 class TaskBase(BaseModel):
@@ -20,7 +20,7 @@ class TaskCreate(TaskBase):
     """
 
 
-class TaskResponse(TaskBase):
+class Task(TaskBase):
     """
     for the response
     """
@@ -30,9 +30,24 @@ class TaskResponse(TaskBase):
     owner_id: int
     completed: bool = False
 
-    class config:
+    class Config:
         """
         the configuration
         """
 
         orm_mode = True
+
+
+class UserBase(BaseModel):
+    username: str
+    email: str
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class User(UserBase):
+    id: int
+    is_active: bool
+    tasks: List[Task] = []
