@@ -1,21 +1,21 @@
-from sqlite3 import connect
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./tasks.db"
+from app.core.config import settings
 
+# Create database engine
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    settings.DATABASE_URL,
+    connect_args=(
+        {"check_same_thread": False}
+        if settings.DATABASE_URL.startswith("sqlite")
+        else {}
+    ),
 )
 
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Create declarative base
 Base = declarative_base()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

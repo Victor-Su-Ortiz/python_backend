@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.database import Base
 from datetime import datetime
+
+from app.models.database import Base
 
 
 class User(Base):
@@ -13,6 +14,7 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
+    # Relationship to tasks
     tasks = relationship("Task", back_populates="owner")
 
 

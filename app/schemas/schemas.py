@@ -1,46 +1,22 @@
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
-from typing import Optional, List
 
 
-class TaskBase(BaseModel):
-    """
-    Schema for the task
-    """
-
-    title: str
-    description: Optional[str] = None
-    due_date: Optional[str] = None
-    priority: int = Field(gt=0, lt=6, description=("Priority between 1-5"))
+# Token schemas
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
-class TaskCreate(TaskBase):
-    """
-    class for creating a new task
-    """
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
 
-class Task(TaskBase):
-    """
-    for the response
-    """
-
-    id: int
-    created_at: datetime
-    owner_id: int
-    completed: bool = False
-
-    class Config:
-        """
-        the configuration
-        """
-
-        orm_mode = True
-
-
+# User schemas
 class UserBase(BaseModel):
     username: str
-    email: str
+    email: EmailStr
 
 
 class UserCreate(UserBase):
@@ -50,4 +26,50 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
+
+    class Config:
+        orm_mode = True
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+# Task schemas
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: int = Field(gt=0, lt=6, description="Priority between 1-5")
+    due_date: Optional[datetime] = None
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskUpdate(TaskBase):
+    title: Optional[str] = None
+    priority: Optional[int] = Field(None, gt=0, lt=6)
+    completed: Optional[bool] = None
+
+
+class Task(TaskBase):
+    id: int
+    completed: bool
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class TaskInDB(Task):
+    pass
+
+
+# User with tasks
+class UserWithTasks(User):
     tasks: List[Task] = []
+
+    class Config:
+        orm_mode = True
