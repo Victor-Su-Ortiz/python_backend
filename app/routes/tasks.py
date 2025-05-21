@@ -32,7 +32,7 @@ def get_tasks(
     skip: int = 0,
     limit: int = 100,
     completed: Optional[bool] = None,
-    priority: Optional[int] = Query(gt=0, lt=6),
+    priority: Optional[int] = Query(None, gt=0, lt=6),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -45,6 +45,9 @@ def get_tasks(
         completed (bool): if the task if complete
         priority (int): priority of the tasks
 
+    Returns:
+        tasks up to limit and args
+
     """
     query = db.query(models.Task).filter(models.Task.owner_id == current_user.id)
     if completed is not None:
@@ -52,3 +55,36 @@ def get_tasks(
     if priority is not None:
         query = query.filter(models.Task.priority == priority)
     return query.offset(skip).limit(limit).all()
+
+
+@router.get("/{task_id}", response_model=schemas.Task)
+def get_task(
+    task_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)
+):
+    """
+    Get a specific task by ID
+
+    Args:
+        task_id (int): id of the task you want to fetch
+    """
+    task = (
+        db.query(models.Task)
+        .filter(models.Task.id == task_id, models.Task.owner_id == current_user.id)
+        .first()
+    )
+    if task is None:
+        return HTTPException(status_code=404, detail="Task not found")
+    return task
+
+@router.put("/{task_id}", response_model=schemas.Task)
+def update_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    task_db = db.query(models.Task).filter(
+        models.Task.id == task_id,
+        models.Task.owner_id == current_user.id
+    ).first()
+
+    if task_db is None:
