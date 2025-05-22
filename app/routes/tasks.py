@@ -1,5 +1,4 @@
 from ast import mod
-from webbrowser import get
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -125,7 +124,7 @@ def update_task(
 @router.patch("/{task_id}/complete", response_model=schemas.Task)
 def complete_task(
     task_id: int,
-    db: Session = Depends(get_current_user),
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     task_db = (
@@ -143,12 +142,13 @@ def complete_task(
     return task_db
 
 
-@router.delete("/{task_id}", response_model=schemas.Task)
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(
     task_id: int = Path(gt=0),
     db: Session = Depends(get_current_user),
     current_user: models.User = Depends(get_current_user),
 ):
+    """Delete a task for task_id"""
     task_db = (
         db.query(models.Task)
         .filter(models.Task.id == task_id, models.Task.owner_id == current_user.id)

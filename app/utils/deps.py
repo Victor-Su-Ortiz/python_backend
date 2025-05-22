@@ -92,7 +92,7 @@ async def get_current_active_user(
     return current_user
 
 
-def authenticate_user(db: Session, username: str, password: str) -> User:
+def authenticate_user(db: Session, username: str, password: str) -> User | None:
     """
     Authenticate a user by username and password.
 

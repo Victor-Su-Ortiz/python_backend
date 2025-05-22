@@ -73,3 +73,4 @@ class UserWithTasks(User):
 
     class Config:
         from_attributes = True
+
