@@ -136,4 +136,8 @@ def complete_task(
 
     if task_db is None:
         return HTTPException(status_code=404, detail="task not found")
-    
+
+    task_db.complete = True
+    db.commit()
+    db.refresh(task_db)
+    return task_db
