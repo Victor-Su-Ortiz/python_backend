@@ -1,6 +1,6 @@
 from ast import mod
 from webbrowser import get
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.orm import Session
 from typing import Optional, List
 
@@ -141,3 +141,21 @@ def complete_task(
     db.commit()
     db.refresh(task_db)
     return task_db
+
+
+@router.delete("/{task_id}", response_model=schemas.Task)
+def delete_task(
+    task_id: int = Path(gt=0),
+    db: Session = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
+):
+    task_db = (
+        db.query(models.Task)
+        .filter(models.Task.id == task_id, models.Task.owner_id == current_user.id)
+        .first()
+    )
+    if task_db is None:
+        return HTTPException(status_code=404, detail="Task not found")
+    db.delete(task_db)
+    db.commit()
+    return None
