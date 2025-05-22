@@ -10,8 +10,11 @@ from pydantic import BaseModel
 
 
 class Specialty(str, Enum):
+    """Doctor specialty"""
+
     ONCOLOGY = "oncology"
     DERMATOLOGY = "dermatology"
+    RADIOLOGY = "radiology"
 
 
 class Person(BaseModel):
@@ -24,6 +27,7 @@ class Person(BaseModel):
 class Appointment(BaseModel):
     """Appointmenet"""
 
+    id: int
     patient_id: int
     doctor_id: int
     start_time: datetime
