@@ -1,4 +1,5 @@
 from ast import mod
+from webbrowser import get
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -6,9 +7,24 @@ from typing import Optional, List
 from app.models import models
 from app.schemas import schemas
 from app.models import database
-from app.utils.deps import get_current_user, get_db
+from app.utils.deps import get_db
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+
+
+class MockUser:
+    """Mock user model for testing purposes"""
+
+    def __init__(self, id: int, username: str, email: str, is_active: bool = True):
+        self.id = id
+        self.username = username
+        self.email = email
+        self.is_active = is_active
+
+
+def get_current_user() -> MockUser:
+    """Mock getting the current user for testing purposes"""
+    return MockUser(id=1, username="John Doe", email="johndoe@example.com")
 
 
 @router.post("/", response_model=schemas.Task, status_code=status.HTTP_201_CREATED)
@@ -59,7 +75,9 @@ def get_tasks(
 
 @router.get("/{task_id}", response_model=schemas.Task)
 def get_task(
-    task_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """
     Get a specific task by ID
@@ -82,22 +100,40 @@ def update_task(
     task_id: int,
     update_data: schemas.TaskUpdate,
     db: Session = Depends(get_db),
-    # current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     """
     Update a task using a new task (put operation)
     """
     task_db = (
         db.query(models.Task)
-        .filter(models.Task.id == task_id, models.Task.owner_id == 1)
+        .filter(models.Task.id == task_id, models.Task.owner_id == current_user.id)
         .first()
     )
 
     if task_db is None:
         return HTTPException(status_code=404, detail="task not found")
+
     task_update = update_data.model_dump(exclude_unset=True)
-    for key, value in task_update:
+    for key, value in task_update.items():
         setattr(task_db, key, value)
     db.commit()
     db.refresh(task_db)
     return task_db
+
+
+@router.patch("/{task_id}/complete", response_model=schemas.Task)
+def complete_task(
+    task_id: int,
+    db: Session = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user),
+):
+    task_db = (
+        db.query(models.Task)
+        .filter(models.Task.id == task_id, models.Task.owner_id == current_user.id)
+        .first()
+    )
+
+    if task_db is None:
+        return HTTPException(status_code=404, detail="task not found")
+    
