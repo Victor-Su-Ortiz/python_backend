@@ -13,6 +13,7 @@ app.add_middleware(CORSMiddleware)
 
 app.include_router(tasks.router, prefix=settings.API_V1_PREFIX)
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
+app.include_router(patients.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
